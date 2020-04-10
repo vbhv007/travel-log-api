@@ -4,25 +4,16 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/vbhv007/travel-log-api/dto"
 )
-
-type logEntity struct {
-	gorm.Model
-	Title  string
-	Description string
-	Rating int
-	ImageUrl string
-	Latitude float64
-	Longitude float64
-}
 
 var LogEntityDao LogEntityDaoT
 
 type LogEntityDaoT interface {
-	Save(newData *logEntity) error
+	Save(newData *dto.LogEntity) error
 	Migrate() error
-	Find(data *logEntity) (*logEntity, error)
-	Update(oldData *logEntity, newData *logEntity) error
+	Find(data *dto.LogEntity) (*dto.LogEntity, error)
+	Update(oldData *dto.LogEntity, newData *dto.LogEntity) error
 }
 
 func init() {
@@ -32,12 +23,12 @@ func init() {
 }
 
 type LogEntityDaoImpl struct {
-	log *logEntity
+	log *dto.LogEntity
 	db  *gorm.DB
 }
 
 func (dao *LogEntityDaoImpl) init() {
-	dao.log = &logEntity{}
+	dao.log = &dto.LogEntity{}
 	db, err := gorm.Open("sqlite3", "travelDB.db")
 	if err != nil {
 		panic("failed to connect database")
@@ -46,11 +37,11 @@ func (dao *LogEntityDaoImpl) init() {
 }
 
 func (dao *LogEntityDaoImpl) Migrate() error {
-	dao.db.AutoMigrate(&logEntity{})
+	dao.db.AutoMigrate(&dto.LogEntity{})
 	return nil
 }
 
-func (dao *LogEntityDaoImpl) Save(newData *logEntity) error {
+func (dao *LogEntityDaoImpl) Save(newData *dto.LogEntity) error {
 	if dao.db.NewRecord(newData) {
 		dao.db.Create(&newData)
 		return nil
@@ -58,14 +49,14 @@ func (dao *LogEntityDaoImpl) Save(newData *logEntity) error {
 	return fmt.Errorf("failed to insert data. Already exist")
 }
 
-func (dao *LogEntityDaoImpl) Find(data *logEntity) (*logEntity, error){
-	var log *logEntity
+func (dao *LogEntityDaoImpl) Find(data *dto.LogEntity) (*dto.LogEntity, error) {
+	var log *dto.LogEntity
 	dao.db.First(&log, data.ID)
 	return log, nil
 	//dao.db.First(&log, "code = ?", "L1212") // find product with code l1212
 }
 
-func (dao *LogEntityDaoImpl) Update(oldData *logEntity, newData *logEntity) error {
+func (dao *LogEntityDaoImpl) Update(oldData *dto.LogEntity, newData *dto.LogEntity) error {
 	dao.db.Model(&oldData).Update(newData)
 	return nil
 }

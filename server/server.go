@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/vbhv007/travel-log-api/api"
+	"github.com/vbhv007/travel-log-api/database"
 	"log"
 	"net/http"
 )
@@ -18,6 +19,10 @@ func Start() {
 
 func startExternalServer() {
 	fmt.Println("Starting server on port:", PORT)
+	dbErr := database.LogEntityDao.Migrate()
+	if dbErr != nil {
+		panic("Unable to migrate DB")
+	}
 	externalRouter := buildExternalRouter()
 	http.Handle("/", externalRouter)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", PORT), externalRouter))
