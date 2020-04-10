@@ -33,6 +33,10 @@ func (dao *LogEntityDaoImpl) init() {
 	if err != nil {
 		panic("failed to connect database")
 	}
+	dbErr := dao.Migrate()
+	if dbErr != nil {
+		panic("Unable to migrate DB")
+	}
 	dao.db = db
 }
 
