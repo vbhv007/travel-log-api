@@ -12,7 +12,7 @@ var LogEntityDao LogEntityDaoT
 type LogEntityDaoT interface {
 	Save(newData *dto.LogEntity) error
 	Migrate() error
-	Find(data *dto.LogEntity) (*dto.LogEntity, error)
+	Find(condition interface{}) ([]*dto.LogEntity, error)
 	Update(oldData *dto.LogEntity, newData *dto.LogEntity) error
 }
 
@@ -41,7 +41,7 @@ func (dao *LogEntityDaoImpl) init() {
 }
 
 func (dao *LogEntityDaoImpl) Migrate() error {
-	dao.db.AutoMigrate(&dto.LogEntity{})
+	dao.db.Debug().AutoMigrate(&dto.LogEntity{})
 	return nil
 }
 
@@ -53,10 +53,10 @@ func (dao *LogEntityDaoImpl) Save(newData *dto.LogEntity) error {
 	return fmt.Errorf("failed to insert data. Already exist")
 }
 
-func (dao *LogEntityDaoImpl) Find(data *dto.LogEntity) (*dto.LogEntity, error) {
-	var log *dto.LogEntity
-	dao.db.First(&log, data.ID)
-	return log, nil
+func (dao *LogEntityDaoImpl) Find(condition interface{}) ([]*dto.LogEntity, error) {
+	var logs []*dto.LogEntity
+	dao.db.Find(&logs, condition)
+	return logs, nil
 	//dao.db.First(&log, "code = ?", "L1212") // find product with code l1212
 }
 
