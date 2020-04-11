@@ -33,11 +33,11 @@ func (dao *LogEntityDaoImpl) init() {
 	if err != nil {
 		panic("failed to connect database")
 	}
+	dao.db = db
 	dbErr := dao.Migrate()
 	if dbErr != nil {
 		panic("Unable to migrate DB")
 	}
-	dao.db = db
 }
 
 func (dao *LogEntityDaoImpl) Migrate() error {
@@ -55,7 +55,7 @@ func (dao *LogEntityDaoImpl) Save(newData *dto.LogEntity) error {
 
 func (dao *LogEntityDaoImpl) Find(condition interface{}) ([]*dto.LogEntity, error) {
 	var logs []*dto.LogEntity
-	dao.db.Find(&logs, condition)
+	dao.db.Find(&logs)
 	return logs, nil
 	//dao.db.First(&log, "code = ?", "L1212") // find product with code l1212
 }

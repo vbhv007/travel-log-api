@@ -31,5 +31,6 @@ func buildExternalRouter() *mux.Router {
 
 func addAPIs(router *mux.Router) {
 	router.PathPrefix("/logs").HandlerFunc(api.Logs).Methods("POST")
+	router.PathPrefix("/addLog").HandlerFunc(api.AddLog).Methods("POST")
 	router.PathPrefix("/").HandlerFunc(api.NotFound).Methods("GET", "POST")
 }
