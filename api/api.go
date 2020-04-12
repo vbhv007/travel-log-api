@@ -23,25 +23,17 @@ type AddLogRequest struct {
 
 type LogsResponse struct {
 	BaseResponse
-	Logs    []*dto.LogEntity
+	Logs []*dto.LogEntity
 }
 
 type BaseResponse struct {
 	Message string
-	Error   error
-}
-
-type ErrorResponse struct {
-	Message   string
-	ErrorCode int
 }
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-	_, err := w.Write([]byte(`{"Message": "Not Found"}`))
-	if err != nil {
-		fmt.Errorf("failed to generate response, err=%v", err.Error())
-	}
+	response := BaseResponse{}
+	response.Message = "Page Not Found"
+	wrapResponse(404, response, w)
 }
 
 func Logs(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +43,9 @@ func Logs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		wrapError(500, "db query failed", w)
 	}
-	response.Error = nil
 	response.Message = "Found some logs"
 	response.Logs = logs
-	wrapResponse(response, w)
+	wrapResponse(200, response, w)
 }
 
 func AddLog(w http.ResponseWriter, r *http.Request) {
@@ -76,15 +67,13 @@ func AddLog(w http.ResponseWriter, r *http.Request) {
 	}
 	response := BaseResponse{}
 	response.Message = "Log added"
-	response.Error = nil
-	wrapResponse(response, w)
+	wrapResponse(200, response, w)
 }
 
 func wrapError(statusCode int, message string, w http.ResponseWriter) {
-	response := ErrorResponse{}
+	response := BaseResponse{}
 	w.WriteHeader(statusCode)
 	response.Message = message
-	response.ErrorCode = statusCode
 	resp, err := json.Marshal(response)
 	if err != nil {
 		fmt.Errorf("unable to marshal response=%v", response)
@@ -97,13 +86,13 @@ func wrapError(statusCode int, message string, w http.ResponseWriter) {
 	}
 }
 
-func wrapResponse(respStruct interface{}, w http.ResponseWriter) {
+func wrapResponse(statusCode int, respStruct interface{}, w http.ResponseWriter) {
 	resp, err := json.Marshal(respStruct)
 	if err != nil {
 		wrapError(500, "unable to marshal response", w)
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(statusCode)
 	_, err = w.Write(resp)
 	if err != nil {
 		wrapError(500, "failed to generate response", w)
