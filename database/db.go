@@ -55,9 +55,8 @@ func (dao *LogEntityDaoImpl) Save(newData *dto.LogEntity) error {
 
 func (dao *LogEntityDaoImpl) Find(condition interface{}) ([]*dto.LogEntity, error) {
 	var logs []*dto.LogEntity
-	dao.db.Find(&logs)
+	dao.db.Where(condition).Find(&logs)
 	return logs, nil
-	//dao.db.First(&log, "code = ?", "L1212") // find product with code l1212
 }
 
 func (dao *LogEntityDaoImpl) Update(oldData *dto.LogEntity, newData *dto.LogEntity) error {

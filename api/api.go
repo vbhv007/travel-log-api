@@ -16,9 +16,15 @@ type AddLogRequest struct {
 	Description string
 	Rating      int
 	ImageUrl    string
-	Latitude    int
-	Longitude   int
+	Latitude    float64
+	Longitude   float64
 	UpdatedAt   time.Time
+}
+
+type LogsRequest struct {
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+	Rating      int    `json:"rating,omitempty"`
 }
 
 type LogsResponse struct {
@@ -37,7 +43,17 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func Logs(w http.ResponseWriter, r *http.Request) {
-	condition := struct{}{}
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		wrapError(400, "Not able to read body", w)
+		return
+	}
+	condition := LogsRequest{}
+	err = json.Unmarshal(body, &condition)
+	if err != nil {
+		wrapError(500, "Not able to unmarshal body", w)
+		return
+	}
 	response := LogsResponse{}
 	logs, err := database.LogEntityDao.Find(condition)
 	if err != nil {

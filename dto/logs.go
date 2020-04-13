@@ -8,8 +8,8 @@ type LogEntity struct {
 	Description string    `gorm:"-" json:"description"`
 	Rating      int       `gorm:"not null; default:0" json:"rating"`
 	ImageUrl    string    `gorm:"not null" json:"image_url"`
-	Latitude    int       `gorm:"not null; default:180" json:"latitude"`
-	Longitude   int       `gorm:"not null; default:180" json:"longitude"`
+	Latitude    float64   `gorm:"not null; default:180" json:"latitude"`
+	Longitude   float64   `gorm:"not null; default:180" json:"longitude"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
