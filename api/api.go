@@ -21,12 +21,6 @@ type AddLogRequest struct {
 	UpdatedAt   time.Time
 }
 
-type LogsRequest struct {
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
-	Rating      int    `json:"rating,omitempty"`
-}
-
 type LogsResponse struct {
 	BaseResponse
 	Logs []*dto.LogEntity
@@ -48,7 +42,7 @@ func Logs(w http.ResponseWriter, r *http.Request) {
 		wrapError(400, "Not able to read body", w)
 		return
 	}
-	condition := LogsRequest{}
+	condition := dto.LogEntity{}
 	err = json.Unmarshal(body, &condition)
 	if err != nil {
 		wrapError(500, "Not able to unmarshal body", w)
