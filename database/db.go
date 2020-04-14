@@ -7,6 +7,11 @@ import (
 	"github.com/vbhv007/travel-log-api/dto"
 )
 
+const (
+	DBName = "travelDB.db"
+	DBType = "sqlite3"
+)
+
 var LogEntityDao LogEntityDaoT
 
 type LogEntityDaoT interface {
@@ -29,7 +34,7 @@ type LogEntityDaoImpl struct {
 
 func (dao *LogEntityDaoImpl) init() {
 	dao.log = &dto.LogEntity{}
-	db, err := gorm.Open("sqlite3", "travelDB.db")
+	db, err := gorm.Open(DBType, DBName)
 	if err != nil {
 		panic("failed to connect database")
 	}

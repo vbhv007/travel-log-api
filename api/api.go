@@ -10,6 +10,19 @@ import (
 	"time"
 )
 
+const (
+	InternalServerErrorStatusCode = 500
+	NotFoundStatusCode            = 404
+	BadRequestStatusCode          = 400
+	OkStatusCode                  = 200
+	PageNotFound                  = "Page Not Found"
+	MarshalError                  = "unable to marshal response"
+	UnmarshalError                = "unable to unmarshal body"
+	BodyReadError                 = "unable to read body"
+	DBQueryError                  = "db query failed"
+	ResponseError                 = "failed to generate response"
+)
+
 type AddLogRequest struct {
 	ID          uint
 	Title       string
@@ -32,80 +45,83 @@ type BaseResponse struct {
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	response := BaseResponse{}
-	response.Message = "Page Not Found"
-	wrapResponse(404, response, w)
+	response.Message = PageNotFound
+	wrapResponse(NotFoundStatusCode, response, w)
 }
 
 func Logs(w http.ResponseWriter, r *http.Request) {
+	logtag := "Logs"
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		wrapError(400, "Not able to read body", w)
+		wrapError(logtag, BadRequestStatusCode, BodyReadError, w)
 		return
 	}
 	condition := dto.LogEntity{}
 	err = json.Unmarshal(body, &condition)
 	if err != nil {
-		wrapError(500, "Not able to unmarshal body", w)
+		wrapError(logtag, InternalServerErrorStatusCode, UnmarshalError, w)
 		return
 	}
 	response := LogsResponse{}
 	logs, err := database.LogEntityDao.Find(condition)
 	if err != nil {
-		wrapError(500, "db query failed", w)
+		wrapError(logtag, InternalServerErrorStatusCode, DBQueryError, w)
 	}
 	response.Message = "Found some logs"
 	response.Logs = logs
-	wrapResponse(200, response, w)
+	wrapResponse(OkStatusCode, response, w)
 }
 
 func AddLog(w http.ResponseWriter, r *http.Request) {
+	logtag := "AddLog"
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		wrapError(400, "Not able to read body", w)
+		wrapError(logtag, BadRequestStatusCode, BodyReadError, w)
 		return
 	}
 	log := dto.LogEntity{}
 	err = json.Unmarshal(body, &log)
 	if err != nil {
-		wrapError(500, "Not able to unmarshal body", w)
+		wrapError(logtag, InternalServerErrorStatusCode, UnmarshalError, w)
 		return
 	}
 	err = database.LogEntityDao.Save(&log)
 	if err != nil {
-		wrapError(500, "unable to save into db", w)
+		wrapError(logtag, InternalServerErrorStatusCode, DBQueryError, w)
 		return
 	}
 	response := BaseResponse{}
 	response.Message = "Log added"
-	wrapResponse(200, response, w)
+	wrapResponse(OkStatusCode, response, w)
 }
 
-func wrapError(statusCode int, message string, w http.ResponseWriter) {
+func wrapError(logtag string, statusCode int, message string, w http.ResponseWriter) {
 	response := BaseResponse{}
 	w.WriteHeader(statusCode)
 	response.Message = message
 	resp, err := json.Marshal(response)
 	if err != nil {
-		fmt.Errorf("unable to marshal response=%v", response)
+		fmt.Errorf("%v | %v=%v", logtag, MarshalError, response)
 		return
 	}
 	_, err = w.Write(resp)
 	if err != nil {
-		fmt.Errorf("failed to generate response, err=%v", err.Error())
+		fmt.Errorf("%v | %v, err=%v", logtag, ResponseError, err.Error())
 		return
 	}
 }
 
 func wrapResponse(statusCode int, respStruct interface{}, w http.ResponseWriter) {
+	logtag := "Response"
 	resp, err := json.Marshal(respStruct)
 	if err != nil {
-		wrapError(500, "unable to marshal response", w)
+		wrapError(logtag, InternalServerErrorStatusCode, MarshalError, w)
 		return
 	}
 	w.WriteHeader(statusCode)
 	_, err = w.Write(resp)
 	if err != nil {
-		wrapError(500, "failed to generate response", w)
+		wrapError(logtag, InternalServerErrorStatusCode, ResponseError, w)
 		return
 	}
 }
