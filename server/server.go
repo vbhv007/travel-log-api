@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/vbhv007/travel-log-api/api"
 	"log"
@@ -18,9 +19,10 @@ func Start() {
 
 func startExternalServer() {
 	fmt.Println("Starting server on port:", PORT)
+	AllowedOrigins := handlers.AllowedOrigins([]string{"http://localhost:3000", "http://localhost:8080"})
 	externalRouter := buildExternalRouter()
 	http.Handle("/", externalRouter)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", PORT), externalRouter))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", PORT), handlers.CORS(AllowedOrigins)(externalRouter)))
 }
 
 func buildExternalRouter() *mux.Router {
