@@ -7,7 +7,6 @@ import (
 	"github.com/vbhv007/travel-log-api/dto"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 const (
@@ -23,24 +22,13 @@ const (
 	ResponseError                 = "failed to generate response"
 )
 
-type AddLogRequest struct {
-	ID          uint
-	Title       string
-	Description string
-	Rating      int
-	ImageUrl    string
-	Latitude    float64
-	Longitude   float64
-	UpdatedAt   time.Time
-}
-
 type LogsResponse struct {
 	BaseResponse
-	Logs []*dto.LogEntity
+	Logs []*dto.LogEntity	`json:"logs"`
 }
 
 type BaseResponse struct {
-	Message string
+	Message string `json:"msg"`
 }
 
 func NotFound(w http.ResponseWriter, r *http.Request) {

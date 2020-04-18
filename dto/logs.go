@@ -5,7 +5,7 @@ import "time"
 type LogEntity struct {
 	ID          uint      `gorm:"primary_key;auto_increment;" json:"id,omitempty"`
 	Title       string    `gorm:"not null" json:"title,omitempty"`
-	Description string    `gorm:"-" json:"description,omitempty"`
+	Description string    `gorm:"default:null" json:"description,omitempty"`
 	Rating      int       `gorm:"not null; default:0" json:"rating,omitempty"`
 	ImageUrl    string    `gorm:"not null" json:"image_url,omitempty"`
 	Latitude    float64   `gorm:"not null; default:180" json:"latitude,omitempty"`
