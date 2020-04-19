@@ -19,7 +19,7 @@ func Start() {
 
 func startExternalServer() {
 	fmt.Println("Starting server on port:", PORT)
-	AllowedOrigins := handlers.AllowedOrigins([]string{"http://localhost:3000", "http://localhost:8080"})
+	AllowedOrigins := handlers.AllowedOrigins([]string{"http://localhost:5000", "http://localhost:8080"})
 	externalRouter := buildExternalRouter()
 	http.Handle("/", externalRouter)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", PORT), handlers.CORS(AllowedOrigins)(externalRouter)))
