@@ -24,7 +24,7 @@ const (
 
 type LogsResponse struct {
 	BaseResponse
-	Logs []*dto.LogEntity	`json:"logs"`
+	Logs []*dto.LogEntity `json:"logs"`
 }
 
 type BaseResponse struct {
