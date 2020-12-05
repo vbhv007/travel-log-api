@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/vbhv007/travel-log-api/database"
 	"github.com/vbhv007/travel-log-api/dto"
+	"github.com/vbhv007/travel-log-api/storage"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -22,94 +22,97 @@ const (
 	ResponseError                 = "failed to generate response"
 )
 
-type LogsResponse struct {
-	BaseResponse
-	Logs []*dto.LogEntity `json:"logs"`
-}
-
-type BaseResponse struct {
-	Message string `json:"msg"`
-}
-
 func NotFound(w http.ResponseWriter, r *http.Request) {
-	response := BaseResponse{}
+	logTag := "NotFound"
+	response := dto.BaseResponse{}
 	response.Message = PageNotFound
-	wrapResponse(NotFoundStatusCode, response, w)
+	wrapResponse(logTag, NotFoundStatusCode, response, w)
+}
+
+func EmptyResponse(w http.ResponseWriter, r *http.Request) {
+	logTag := "EmptyResponse"
+	response := ""
+
+	wrapResponse(logTag, OkStatusCode, response, w)
 }
 
 func Logs(w http.ResponseWriter, r *http.Request) {
-	logtag := "Logs"
+	logTag := "Logs"
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		wrapError(logtag, BadRequestStatusCode, BodyReadError, w)
+		wrapError(logTag, BadRequestStatusCode, BodyReadError, err, w)
 		return
 	}
-	condition := dto.LogEntity{}
+	condition := storage.LogEntity{}
 	err = json.Unmarshal(body, &condition)
 	if err != nil {
-		wrapError(logtag, InternalServerErrorStatusCode, UnmarshalError, w)
+		wrapError(logTag, InternalServerErrorStatusCode, UnmarshalError, err, w)
 		return
 	}
-	response := LogsResponse{}
-	logs, err := database.LogEntityDao.Find(condition)
+	response := dto.LogsResponse{}
+	logs, err := storage.LogEntityDao.Find(condition)
 	if err != nil {
-		wrapError(logtag, InternalServerErrorStatusCode, DBQueryError, w)
+		wrapError(logTag, InternalServerErrorStatusCode, DBQueryError, err, w)
 	}
 	response.Message = "Found some logs"
 	response.Logs = logs
-	wrapResponse(OkStatusCode, response, w)
+	wrapResponse(logTag, OkStatusCode, response, w)
 }
 
 func AddLog(w http.ResponseWriter, r *http.Request) {
-	logtag := "AddLog"
+	logTag := "AddLog"
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		wrapError(logtag, BadRequestStatusCode, BodyReadError, w)
+		wrapError(logTag, BadRequestStatusCode, BodyReadError, err, w)
 		return
 	}
-	log := dto.LogEntity{}
+	log := storage.LogEntity{}
 	err = json.Unmarshal(body, &log)
 	if err != nil {
-		wrapError(logtag, InternalServerErrorStatusCode, UnmarshalError, w)
+		wrapError(logTag, InternalServerErrorStatusCode, UnmarshalError, err, w)
 		return
 	}
-	err = database.LogEntityDao.Save(&log)
+	err = storage.LogEntityDao.Save(&log)
 	if err != nil {
-		wrapError(logtag, InternalServerErrorStatusCode, DBQueryError, w)
+		wrapError(logTag, InternalServerErrorStatusCode, DBQueryError, err, w)
 		return
 	}
-	response := BaseResponse{}
+	response := dto.BaseResponse{}
 	response.Message = "Log added"
-	wrapResponse(OkStatusCode, response, w)
+	wrapResponse(logTag, OkStatusCode, response, w)
 }
 
-func wrapError(logtag string, statusCode int, message string, w http.ResponseWriter) {
-	response := BaseResponse{}
+func wrapError(logTag string, statusCode int, message string, err error, w http.ResponseWriter) {
+	response := dto.ErrorResponse{}
 	w.WriteHeader(statusCode)
 	response.Message = message
+	response.Error = err.Error()
 	resp, err := json.Marshal(response)
 	if err != nil {
-		fmt.Errorf("%v | %v=%v", logtag, MarshalError, response)
+		log.Printf("%v | %v=%v", logTag, MarshalError, response)
 		return
 	}
 	_, err = w.Write(resp)
 	if err != nil {
-		fmt.Errorf("%v | %v, err=%v", logtag, ResponseError, err.Error())
+		log.Printf("%v | %v, err=%v", logTag, ResponseError, err.Error())
 		return
 	}
 }
 
-func wrapResponse(statusCode int, respStruct interface{}, w http.ResponseWriter) {
-	logtag := "Response"
+func wrapResponse(logTag string, statusCode int, respStruct interface{}, w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	resp, err := json.Marshal(respStruct)
 	if err != nil {
-		wrapError(logtag, InternalServerErrorStatusCode, MarshalError, w)
+		wrapError(logTag, InternalServerErrorStatusCode, MarshalError, err, w)
 		return
 	}
 	w.WriteHeader(statusCode)
 	_, err = w.Write(resp)
 	if err != nil {
-		wrapError(logtag, InternalServerErrorStatusCode, ResponseError, w)
+		wrapError(logTag, InternalServerErrorStatusCode, ResponseError, err, w)
 		return
 	}
 }
